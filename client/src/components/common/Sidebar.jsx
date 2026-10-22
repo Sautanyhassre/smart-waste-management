@@ -12,6 +12,7 @@ import {
   FileText,
   Bell,
   ShieldCheck,
+  MessageSquare,
   X
 } from 'lucide-react';
 
@@ -27,6 +28,7 @@ const Sidebar = ({ isOpen, onClose }) => {
     { label: 'Map View', path: '/map', icon: MapPin, roles: ['admin', 'staff', 'viewer'] },
     { label: 'Collections', path: '/collections', icon: CalendarCheck, roles: ['admin', 'staff'] },
     { label: 'Vehicles', path: '/vehicles', icon: Truck, roles: ['admin', 'staff'] },
+    { label: 'Complaints', path: '/complaints', icon: MessageSquare, roles: ['admin', 'staff', 'viewer'] },
     { label: 'Waste Records', path: '/records', icon: FileText, roles: ['admin', 'viewer'] },
     { label: 'Analytics', path: '/analytics', icon: BarChart3, roles: ['admin', 'viewer'] },
     { label: 'Reports', path: '/reports', icon: FileText, roles: ['admin', 'viewer'] },

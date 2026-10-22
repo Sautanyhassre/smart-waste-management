@@ -15,6 +15,7 @@ import WasteRecordsPage from './pages/WasteRecordsPage';
 import AnalyticsPage from './pages/AnalyticsPage';
 import ReportsPage from './pages/ReportsPage';
 import AlertsPage from './pages/AlertsPage';
+import ComplaintReportingPage from './pages/ComplaintReportingPage';
 import NotFoundPage from './pages/NotFoundPage';
 
 // Protected Layout Guard Component
@@ -105,6 +106,15 @@ function App() {
             element={
               <MainLayout>
                 <VehicleManagementPage />
+              </MainLayout>
+            }
+          />
+
+          <Route
+            path="/complaints"
+            element={
+              <MainLayout>
+                <ComplaintReportingPage />
               </MainLayout>
             }
           />

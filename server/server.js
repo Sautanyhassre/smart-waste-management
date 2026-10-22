@@ -29,6 +29,7 @@ app.use('/api/vehicles', require('./routes/vehicleRoutes'));
 app.use('/api/analytics', require('./routes/analyticsRoutes'));
 app.use('/api/notifications', require('./routes/notificationRoutes'));
 app.use('/api/reports', require('./routes/reportRoutes'));
+app.use('/api/complaints', require('./routes/complaintRoutes'));
 
 // Health Check Endpoint
 app.get('/api/health', (req, res) => {
