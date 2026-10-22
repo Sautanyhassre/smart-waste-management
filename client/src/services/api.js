@@ -4,6 +4,7 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'https://smart-waste-m
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  timeout: 8000, // 8 second timeout — fallback to mock data if Render cold-starts
   headers: {
     'Content-Type': 'application/json'
   }

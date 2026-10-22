@@ -6,10 +6,16 @@ import Loader from '../components/common/Loader';
 import api from '../services/api';
 import { Truck, Plus, Edit2, Trash2, Wrench, Shield, CheckCircle2 } from 'lucide-react';
 
+const MOCK_VEHICLES = [
+  { _id: '1', vehicleId: 'VEH-101', registrationNumber: 'KA-01-WM-1001', vehicleType: 'Compactor Truck', capacity: 8.5, status: 'Available', currentLocation: 'Koramangala Depot' },
+  { _id: '2', vehicleId: 'VEH-102', registrationNumber: 'KA-01-WM-2002', vehicleType: 'Mini Tipper', capacity: 3.2, status: 'Assigned', currentLocation: 'Indiranagar Zone' },
+  { _id: '3', vehicleId: 'VEH-103', registrationNumber: 'KA-01-WM-3003', vehicleType: 'Hook Loader', capacity: 10.0, status: 'Collecting', currentLocation: 'Whitefield' }
+];
+
 const VehicleManagementPage = () => {
   const { isAdmin } = useContext(AuthContext);
-  const [vehicles, setVehicles] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [vehicles, setVehicles] = useState(MOCK_VEHICLES);  // instant mock
+  const [loading, setLoading] = useState(false);             // no spinner
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -32,11 +38,8 @@ const VehicleManagementPage = () => {
         setVehicles(res.data.data);
       }
     } catch (err) {
-      setVehicles([
-        { _id: '1', vehicleId: 'VEH-101', registrationNumber: 'KA-01-WM-1001', vehicleType: 'Compactor Truck', capacity: 8.5, status: 'Available', currentLocation: 'Koramangala Depot' },
-        { _id: '2', vehicleId: 'VEH-102', registrationNumber: 'KA-01-WM-2002', vehicleType: 'Mini Tipper', capacity: 3.2, status: 'Assigned', currentLocation: 'Indiranagar Zone' },
-        { _id: '3', vehicleId: 'VEH-103', registrationNumber: 'KA-01-WM-3003', vehicleType: 'Hook Loader', capacity: 10.0, status: 'Collecting', currentLocation: 'Whitefield' }
-      ]);
+      console.warn('Backend offline — showing demo vehicle data');
+      // Keep existing mock data — no blank screen
     } finally {
       setLoading(false);
     }

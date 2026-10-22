@@ -2,7 +2,6 @@ import React, { useEffect, useState, useContext } from 'react';
 import { AuthContext } from '../context/AuthContext';
 import StatCard from '../components/common/StatCard';
 import Badge from '../components/common/Badge';
-import Loader from '../components/common/Loader';
 import InteractiveWasteMap from '../components/map/InteractiveWasteMap';
 import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
@@ -16,7 +15,9 @@ import {
   ArrowRight,
   TrendingUp,
   PieChart as PieIcon,
-  BarChart2
+  BarChart2,
+  Wifi,
+  WifiOff
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -35,14 +36,48 @@ import {
 
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#06b6d4'];
 
+const MOCK_DATA = {
+  kpis: {
+    totalBins: 20, activeBins: 20, overflowingBins: 4, requiringAttentionBins: 7,
+    todayCollectionsCount: 6, completedCollections: 4, pendingCollections: 2,
+    totalVehicles: 5, availableVehicles: 3, vehiclesCurrentlyCollecting: 2,
+    totalWasteCollectedKg: 3420, collectionEfficiency: 88
+  },
+  charts: {
+    collectionTrend: [
+      { day: 'Mon', wasteKg: 420 }, { day: 'Tue', wasteKg: 510 }, { day: 'Wed', wasteKg: 480 },
+      { day: 'Thu', wasteKg: 620 }, { day: 'Fri', wasteKg: 590 }, { day: 'Sat', wasteKg: 710 }, { day: 'Sun', wasteKg: 840 }
+    ],
+    statusDistribution: { Empty: 6, Moderate: 5, High: 5, VeryHigh: 2, Critical: 2 },
+    wasteCategoryDistribution: [
+      { category: 'Organic', quantity: 1200 }, { category: 'Plastic', quantity: 850 },
+      { category: 'Paper', quantity: 540 }, { category: 'Glass', quantity: 310 },
+      { category: 'E-waste', quantity: 280 }, { category: 'Metal', quantity: 240 }
+    ],
+    collectionPerformance: { Completed: 12, Pending: 3, Missed: 1, Delayed: 2 },
+    areaWiseWaste: [
+      { zone: 'East Zone', quantity: 1450 }, { zone: 'South Zone', quantity: 1200 },
+      { zone: 'Central Zone', quantity: 980 }, { zone: 'North Zone', quantity: 850 }
+    ]
+  }
+};
+
+const MOCK_CRITICAL_BINS = [
+  { _id: 'b1', binId: 'BIN-101', name: 'Indiranagar 100ft Rd', location: '100 Feet Rd', fillLevel: 94, priorityLevel: 'Critical', zone: 'East Zone', latitude: 12.9784, longitude: 77.6408 },
+  { _id: 'b2', binId: 'BIN-102', name: 'Koramangala 5th Block', location: 'Jyoti Nivas Rd', fillLevel: 92, priorityLevel: 'Critical', zone: 'South Zone', latitude: 12.9352, longitude: 77.6245 }
+];
+
 const DashboardPage = () => {
   const { user } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [data, setData] = useState(null);
-  const [criticalBins, setCriticalBins] = useState([]);
-  const [allBins, setAllBins] = useState([]);
+  // Start with mock data instantly — no blank screen / long spinner
+  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState(MOCK_DATA);
+  const [criticalBins, setCriticalBins] = useState(MOCK_CRITICAL_BINS);
+  const [allBins, setAllBins] = useState(MOCK_CRITICAL_BINS);
+  const [isLive, setIsLive] = useState(false);       // true once real data loads
+  const [waking, setWaking] = useState(true);         // show "server waking" banner
 
   const fetchDashboardData = async () => {
     try {
@@ -51,77 +86,26 @@ const DashboardPage = () => {
         api.get('/bins')
       ]);
 
-      if (analyticsRes.data.success) {
-        setData(analyticsRes.data);
-      }
+      if (analyticsRes.data.success) setData(analyticsRes.data);
       if (binsRes.data.success) {
         setAllBins(binsRes.data.data);
-        const critical = binsRes.data.data.filter(b => b.fillLevel >= 75);
-        setCriticalBins(critical);
+        setCriticalBins(binsRes.data.data.filter(b => b.fillLevel >= 75));
       }
+      setIsLive(true);
+      setWaking(false);
     } catch (err) {
-      console.warn('Backend offline, loading mock dashboard dataset');
-      // Mock Fallback Dataset
-      setData({
-        kpis: {
-          totalBins: 20,
-          activeBins: 20,
-          overflowingBins: 4,
-          requiringAttentionBins: 7,
-          todayCollectionsCount: 6,
-          completedCollections: 4,
-          pendingCollections: 2,
-          totalVehicles: 5,
-          availableVehicles: 3,
-          vehiclesCurrentlyCollecting: 2,
-          totalWasteCollectedKg: 3420,
-          collectionEfficiency: 88
-        },
-        charts: {
-          collectionTrend: [
-            { day: 'Mon', wasteKg: 420 },
-            { day: 'Tue', wasteKg: 510 },
-            { day: 'Wed', wasteKg: 480 },
-            { day: 'Thu', wasteKg: 620 },
-            { day: 'Fri', wasteKg: 590 },
-            { day: 'Sat', wasteKg: 710 },
-            { day: 'Sun', wasteKg: 840 }
-          ],
-          statusDistribution: { Empty: 6, Moderate: 5, High: 5, VeryHigh: 2, Critical: 2 },
-          wasteCategoryDistribution: [
-            { category: 'Organic', quantity: 1200 },
-            { category: 'Plastic', quantity: 850 },
-            { category: 'Paper', quantity: 540 },
-            { category: 'Glass', quantity: 310 },
-            { category: 'E-waste', quantity: 280 },
-            { category: 'Metal', quantity: 240 }
-          ],
-          collectionPerformance: { Completed: 12, Pending: 3, Missed: 1, Delayed: 2 },
-          areaWiseWaste: [
-            { zone: 'East Zone', quantity: 1450 },
-            { zone: 'South Zone', quantity: 1200 },
-            { zone: 'Central Zone', quantity: 980 },
-            { zone: 'North Zone', quantity: 850 }
-          ]
-        }
-      });
-      setCriticalBins([
-        { _id: 'b1', binId: 'BIN-101', name: 'Indiranagar 100ft Rd', location: '100 Feet Rd', fillLevel: 94, priorityLevel: 'Critical', zone: 'East Zone', latitude: 12.9784, longitude: 77.6408 },
-        { _id: 'b2', binId: 'BIN-102', name: 'Koramangala 5th Block', location: 'Jyoti Nivas Rd', fillLevel: 92, priorityLevel: 'Critical', zone: 'South Zone', latitude: 12.9352, longitude: 77.6245 }
-      ]);
-    } finally {
-      setLoading(false);
+      console.warn('Backend offline — showing demo data');
+      setWaking(false); // stop showing banner, just show demo data silently
     }
   };
 
   useEffect(() => {
+    // Fetch live data in background — UI is already showing mock data
     fetchDashboardData();
   }, []);
 
-  if (loading) return <Loader text="Loading live municipal analytics..." />;
-
-  const kpis = data?.kpis || {};
-  const charts = data?.charts || {};
+  const kpis = data?.kpis || MOCK_DATA.kpis;
+  const charts = data?.charts || MOCK_DATA.charts;
 
   const statusPieData = [
     { name: 'Empty / Low (0-25%)', value: charts.statusDistribution?.Empty || 6, color: '#10b981' },
@@ -133,6 +117,25 @@ const DashboardPage = () => {
 
   return (
     <div className="space-y-6 pb-12 animate-in fade-in">
+
+      {/* ── Server Wake-up Banner ── */}
+      {waking && (
+        <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs text-amber-300 font-medium">
+          <div className="w-3 h-3 rounded-full bg-amber-400 animate-pulse shrink-0" />
+          <span>
+            <strong>Connecting to live server…</strong> The backend is waking up from sleep (Render free tier).
+            Showing demo data for now — live data will load automatically in a few seconds.
+          </span>
+        </div>
+      )}
+
+      {/* ── Live Data Connected Banner ── */}
+      {isLive && (
+        <div className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/30 text-xs text-emerald-300 font-medium animate-in fade-in">
+          <Wifi className="w-4 h-4 shrink-0" />
+          <span>Live data connected — showing real-time municipal data.</span>
+        </div>
+      )}
       {/* Header Banner */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-gradient-to-r from-slate-900 via-slate-900 to-slate-900/60 p-6 rounded-2xl border border-slate-800">
         <div>

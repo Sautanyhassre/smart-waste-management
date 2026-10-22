@@ -5,10 +5,18 @@ import api from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { Activity, AlertTriangle, Truck, Filter, Search, ShieldAlert, Sparkles } from 'lucide-react';
 
+const MOCK_BINS = [
+  { _id: '1', binId: 'BIN-101', name: 'Indiranagar 100ft Rd', location: '100 Feet Rd', zone: 'East Zone', fillLevel: 94, status: 'Critical', priorityScore: 95, priorityLevel: 'Critical', binType: 'Smart Solar', wasteCategory: 'Plastic' },
+  { _id: '2', binId: 'BIN-102', name: 'Koramangala 5th Block', location: 'Jyoti Nivas Rd', zone: 'South Zone', fillLevel: 92, status: 'Critical', priorityScore: 92, priorityLevel: 'Critical', binType: 'Standard', wasteCategory: 'Organic' },
+  { _id: '3', binId: 'BIN-103', name: 'Whitefield ITPL Gate', location: 'ITPL Main Rd', zone: 'East Zone', fillLevel: 88, status: 'Very High', priorityScore: 84, priorityLevel: 'High', binType: 'Hazardous', wasteCategory: 'E-waste' },
+  { _id: '4', binId: 'BIN-104', name: 'HSR Layout Sector 2', location: '27th Main Rd', zone: 'South Zone', fillLevel: 72, status: 'High', priorityScore: 68, priorityLevel: 'Medium', binType: 'Standard', wasteCategory: 'Mixed' },
+  { _id: '5', binId: 'BIN-105', name: 'MG Road Metro', location: 'MG Road', zone: 'Central Zone', fillLevel: 45, status: 'Moderate', priorityScore: 40, priorityLevel: 'Low', binType: 'Smart Solar', wasteCategory: 'Paper' }
+];
+
 const BinMonitoringPage = () => {
   const navigate = useNavigate();
-  const [bins, setBins] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bins, setBins] = useState(MOCK_BINS);   // instant mock data
+  const [loading, setLoading] = useState(false);  // no full-screen spinner
   const [search, setSearch] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('All');
 
@@ -20,11 +28,8 @@ const BinMonitoringPage = () => {
         setBins(res.data.data);
       }
     } catch (err) {
-      setBins([
-        { _id: '1', binId: 'BIN-101', name: 'Indiranagar 100ft Rd', location: '100 Feet Rd', zone: 'East Zone', fillLevel: 94, status: 'Critical', priorityScore: 95, priorityLevel: 'Critical', binType: 'Smart Solar', wasteCategory: 'Plastic' },
-        { _id: '2', binId: 'BIN-102', name: 'Koramangala 5th Block', location: 'Jyoti Nivas Rd', zone: 'South Zone', fillLevel: 92, status: 'Critical', priorityScore: 92, priorityLevel: 'Critical', binType: 'Standard', wasteCategory: 'Organic' },
-        { _id: '3', binId: 'BIN-103', name: 'Whitefield ITPL Gate', location: 'ITPL Main Rd', zone: 'East Zone', fillLevel: 88, status: 'Very High', priorityScore: 84, priorityLevel: 'High', binType: 'Hazardous', wasteCategory: 'E-waste' }
-      ]);
+      // Keep existing mock data on error — no blank screen
+      console.warn('Backend offline — showing demo bin data');
     } finally {
       setLoading(false);
     }
