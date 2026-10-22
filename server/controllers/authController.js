@@ -9,6 +9,17 @@ const generateToken = (user) => {
   );
 };
 
+// @desc    Get all staff users (for admin assignment)
+// @route   GET /api/auth/staff
+exports.getStaffUsers = async (req, res, next) => {
+  try {
+    const staff = await User.find({ role: 'staff', status: 'Active' }).select('name email phone zone role status');
+    res.status(200).json({ success: true, count: staff.length, data: staff });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Register User
 // @route   POST /api/auth/register
 exports.register = async (req, res, next) => {

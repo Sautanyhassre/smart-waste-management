@@ -8,8 +8,15 @@ const Notification = require('../models/Notification');
 // @route   GET /api/collections
 exports.getCollections = async (req, res, next) => {
   try {
-    const { status, zone, vehicle, search } = req.query;
+    const { status, zone, vehicle, search, staffId, myTasks } = req.query;
     let query = {};
+
+    // Staff filtering: if myTasks=true, only return collections assigned to the logged-in user
+    if (myTasks === 'true' && req.user) {
+      query.staff = req.user._id || req.user.id;
+    } else if (staffId) {
+      query.staff = staffId;
+    }
 
     if (status && status !== 'All') query.status = status;
 
