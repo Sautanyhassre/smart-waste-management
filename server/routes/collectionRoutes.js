@@ -5,7 +5,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
-router.get('/', getCollections);
+router.get('/', authorize('admin', 'staff'), getCollections);
 router.post('/', authorize('admin'), createCollection);
 router.patch('/:id/status', authorize('admin', 'staff'), updateCollectionStatus);
 router.delete('/:id', authorize('admin'), deleteCollection);

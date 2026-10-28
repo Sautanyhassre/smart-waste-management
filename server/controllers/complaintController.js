@@ -12,10 +12,11 @@ exports.getComplaints = async (req, res, next) => {
     // Role-based scoping
     if (req.user) {
       if (req.user.role === 'viewer' || myComplaints === 'true') {
-        // Scoped to the logged-in viewer by email or user id
+        // Scoped to the logged-in viewer by email, user id, or user name
         query.$or = [
           { userId: req.user._id || req.user.id },
-          { userEmail: req.user.email }
+          { userEmail: req.user.email },
+          { userName: req.user.name }
         ];
       } else if (req.user.role === 'staff') {
         // Staff sees tasks assigned to them, or open in their zone

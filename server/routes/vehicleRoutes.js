@@ -5,7 +5,7 @@ const { protect, authorize } = require('../middleware/authMiddleware');
 
 router.use(protect);
 
-router.get('/', getVehicles);
+router.get('/', authorize('admin', 'staff'), getVehicles);
 router.post('/', authorize('admin'), createVehicle);
 router.put('/:id', authorize('admin'), updateVehicle);
 router.delete('/:id', authorize('admin'), deleteVehicle);

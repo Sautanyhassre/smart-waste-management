@@ -51,6 +51,18 @@ const MainLayout = ({ children }) => {
   );
 };
 
+// Strict Role Guard Component preventing unauthorized route access
+const RoleGuard = ({ roles, children }) => {
+  const { user } = useContext(AuthContext);
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+  if (roles && !roles.includes(user.role)) {
+    return <Navigate to="/dashboard" replace />;
+  }
+  return children;
+};
+
 function App() {
   return (
     <AuthProvider>
@@ -80,7 +92,9 @@ function App() {
             path="/monitoring"
             element={
               <MainLayout>
-                <BinMonitoringPage />
+                <RoleGuard roles={['admin', 'staff']}>
+                  <BinMonitoringPage />
+                </RoleGuard>
               </MainLayout>
             }
           />
@@ -98,7 +112,9 @@ function App() {
             path="/collections"
             element={
               <MainLayout>
-                <CollectionManagementPage />
+                <RoleGuard roles={['admin', 'staff']}>
+                  <CollectionManagementPage />
+                </RoleGuard>
               </MainLayout>
             }
           />
@@ -107,7 +123,9 @@ function App() {
             path="/vehicles"
             element={
               <MainLayout>
-                <VehicleManagementPage />
+                <RoleGuard roles={['admin', 'staff']}>
+                  <VehicleManagementPage />
+                </RoleGuard>
               </MainLayout>
             }
           />
@@ -143,7 +161,9 @@ function App() {
             path="/records"
             element={
               <MainLayout>
-                <WasteRecordsPage />
+                <RoleGuard roles={['admin', 'staff']}>
+                  <WasteRecordsPage />
+                </RoleGuard>
               </MainLayout>
             }
           />
@@ -152,7 +172,9 @@ function App() {
             path="/analytics"
             element={
               <MainLayout>
-                <AnalyticsPage />
+                <RoleGuard roles={['admin']}>
+                  <AnalyticsPage />
+                </RoleGuard>
               </MainLayout>
             }
           />
@@ -161,7 +183,9 @@ function App() {
             path="/reports"
             element={
               <MainLayout>
-                <ReportsPage />
+                <RoleGuard roles={['admin']}>
+                  <ReportsPage />
+                </RoleGuard>
               </MainLayout>
             }
           />
