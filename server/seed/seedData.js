@@ -47,7 +47,7 @@ const seedDatabase = async () => {
     });
 
     const viewerUser = await User.create({
-      name: 'Priya Verma (City Inspector)',
+      name: 'Priya Verma (Citizen / Resident)',
       email: 'viewer@smartwaste.gov.in',
       password: 'viewer123',
       role: 'viewer',
