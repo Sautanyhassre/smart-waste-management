@@ -167,6 +167,12 @@ const ComplaintReportingPage = () => {
   const navigate = useNavigate();
 
   const [activeTab, setActiveTab] = useState(isViewer ? 'new' : 'list');
+
+  useEffect(() => {
+    if (isStaff) {
+      setActiveTab('list');
+    }
+  }, [isStaff]);
   const [complaints, setComplaints] = useState(MOCK_COMPLAINTS);
   const [staffList, setStaffList] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -430,35 +436,51 @@ const ComplaintReportingPage = () => {
           </p>
         </div>
 
-        {/* Tab Switcher */}
-        <div className="flex rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0">
-          <button
-            onClick={() => setActiveTab('new')}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-              activeTab === 'new'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <PlusCircle className="w-4 h-4" /> Raise Grievance
-          </button>
-          <button
-            onClick={() => setActiveTab('list')}
-            className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
-              activeTab === 'list'
-                ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-slate-950 shadow-md'
-                : 'text-slate-400 hover:text-white'
-            }`}
-          >
-            <FileCheck className="w-4 h-4" /> {isAdmin ? 'Complaint Control Log' : isStaff ? 'Assigned Complaints' : 'Public Tracking Log'} ({complaints.length})
-          </button>
-        </div>
+        {/* Tab Switcher - Citizens and Admins have tab switching; Staff only has their assigned tasks */}
+        {!isStaff ? (
+          <div className="flex rounded-xl bg-slate-900 p-1 border border-slate-800 shrink-0">
+            <button
+              onClick={() => setActiveTab('new')}
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                activeTab === 'new'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-slate-950 shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <PlusCircle className="w-4 h-4" /> Raise Grievance
+            </button>
+            <button
+              onClick={() => setActiveTab('list')}
+              className={`px-4 py-2 text-xs font-bold rounded-lg transition-all flex items-center gap-1.5 ${
+                activeTab === 'list'
+                  ? 'bg-gradient-to-r from-emerald-600 to-teal-500 text-slate-950 shadow-md'
+                  : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <FileCheck className="w-4 h-4" /> {isAdmin ? 'Complaint Control Log' : 'Public Tracking Log'} ({complaints.length})
+            </button>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <div className="px-3.5 py-2 bg-slate-900 rounded-xl border border-slate-800 text-xs font-bold text-slate-300 flex items-center gap-2">
+              <FileCheck className="w-4 h-4 text-emerald-400" />
+              <span>Assigned to My Squad ({complaints.length})</span>
+            </div>
+            <button
+              onClick={fetchComplaints}
+              className="p-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl border border-slate-700 transition-colors"
+              title="Refresh Tasks"
+            >
+              <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
+        )}
       </div>
 
       {/* ======================================================== */}
-      {/* TAB 1: COMPLAINT REPORTING FORM                          */}
+      {/* TAB 1: COMPLAINT REPORTING FORM (Citizens / Admin only)  */}
       {/* ======================================================== */}
-      {activeTab === 'new' && (
+      {!isStaff && activeTab === 'new' && (
         <div className="max-w-4xl mx-auto">
           {submitSuccess && (
             <div className="mb-6 p-5 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 flex items-start gap-4 animate-in fade-in">
@@ -748,7 +770,7 @@ const ComplaintReportingPage = () => {
       {/* ======================================================== */}
       {/* TAB 2: COMPLAINT AUDIT & REDRESSAL LOG                   */}
       {/* ======================================================== */}
-      {activeTab === 'list' && (
+      {(isStaff || activeTab === 'list') && (
         <div className="space-y-4">
           {/* Filter Bar */}
           <div className="glass-panel p-4 rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3">
