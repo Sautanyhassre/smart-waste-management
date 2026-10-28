@@ -42,7 +42,7 @@ const Sidebar = ({ isOpen, onClose }) => {
       { label: 'Field Operations', path: '/dashboard', icon: LayoutDashboard },
       { label: 'My Assigned Tasks', path: '/collections', icon: CalendarCheck },
       { label: 'Assigned Complaints', path: '/complaints', icon: MessageSquare },
-      { label: 'Bin Telemetry (IoT)', path: '/monitoring', icon: Activity },
+      { label: 'Bin Fill Telemetry', path: '/monitoring', icon: Activity },
       { label: 'Collection Vehicles', path: '/vehicles', icon: Truck },
       { label: 'Route Map', path: '/map', icon: MapPin },
       { label: 'Field Alerts', path: '/alerts', icon: Bell }

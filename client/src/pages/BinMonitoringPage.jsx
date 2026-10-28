@@ -56,7 +56,7 @@ const BinMonitoringPage = () => {
           <h1 className="text-xl font-extrabold text-white tracking-tight flex items-center gap-2">
             <Activity className="w-6 h-6 text-emerald-400" /> Real-time Bin Monitoring & Priority Queue
           </h1>
-          <p className="text-xs text-slate-400 mt-1">Live fill telemetry, IoT sensor updates, and algorithmic priority scores.</p>
+          <p className="text-xs text-slate-400 mt-1">Live fill telemetry, smart sensor updates, and algorithmic priority scores.</p>
         </div>
 
         <div className="flex items-center gap-3">

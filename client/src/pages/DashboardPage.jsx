@@ -232,7 +232,7 @@ const DashboardPage = () => {
                 </span>
               </div>
               <p className="text-xs text-slate-400 mt-1">
-                Full-city operational oversight: IoT telemetry, citizen grievance redressal, and route scheduling.
+                Full-city operational oversight: sensor telemetry, citizen grievance redressal, and route scheduling.
               </p>
             </div>
 
