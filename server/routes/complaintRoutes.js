@@ -2,16 +2,30 @@ const express = require('express');
 const router = express.Router();
 const {
   getComplaints,
+  getComplaintById,
   createComplaint,
-  updateComplaintStatus
+  assignComplaint,
+  updateWorkflowStatus,
+  citizenAction
 } = require('../controllers/complaintController');
-const { protect } = require('../middleware/authMiddleware');
+const { protect, authorize } = require('../middleware/authMiddleware');
 
-// Public or logged-in citizens can submit a complaint
-router.post('/', createComplaint);
+// Get all / scoped complaints
+router.get('/', protect, getComplaints);
 
-// Listing complaints & updating status can be done by authenticated users (or viewable by all in demo)
-router.get('/', getComplaints);
-router.patch('/:id/status', protect, updateComplaintStatus);
+// Get single complaint details
+router.get('/:id', protect, getComplaintById);
+
+// Public / Citizen submit complaint
+router.post('/', protect, createComplaint);
+
+// Admin assignment & validation
+router.patch('/:id/assign', protect, authorize('admin'), assignComplaint);
+
+// Staff workflow status update
+router.patch('/:id/workflow', protect, authorize('admin', 'staff'), updateWorkflowStatus);
+
+// Citizen confirm or reopen
+router.patch('/:id/citizen-action', protect, authorize('admin', 'viewer'), citizenAction);
 
 module.exports = router;

@@ -22,6 +22,10 @@ const complaintSchema = new mongoose.Schema({
     type: String,
     trim: true
   },
+  userId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User'
+  },
   issueType: {
     type: String,
     required: [true, 'Complaint issue type is required'],
@@ -62,9 +66,13 @@ const complaintSchema = new mongoose.Schema({
     required: [true, 'Complaint description is required'],
     trim: true
   },
+  photoUrl: {
+    type: String,
+    default: ''
+  },
   status: {
     type: String,
-    enum: ['Submitted', 'In Review', 'Assigned', 'Resolved', 'Rejected'],
+    enum: ['Submitted', 'In Review', 'Assigned', 'Accepted', 'In Progress', 'Resolved', 'Rejected', 'Reopened'],
     default: 'Submitted',
     index: true
   },
@@ -72,13 +80,48 @@ const complaintSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   },
+  assignedDate: {
+    type: Date
+  },
+  expectedCollectionTime: {
+    type: String,
+    default: 'Awaiting schedule confirmation'
+  },
+  adminRemarks: {
+    type: String,
+    default: ''
+  },
   resolutionNotes: {
+    type: String,
+    default: ''
+  },
+  resolutionEvidenceUrl: {
     type: String,
     default: ''
   },
   resolvedAt: {
     type: Date
-  }
+  },
+  reopenReason: {
+    type: String,
+    default: ''
+  },
+  reopenedAt: {
+    type: Date
+  },
+  citizenFeedback: {
+    rating: { type: Number, min: 1, max: 5 },
+    comment: { type: String, default: '' },
+    isConfirmedResolved: { type: Boolean, default: false },
+    submittedAt: { type: Date }
+  },
+  activityLog: [{
+    action: { type: String, required: true },
+    performedBy: { type: String, default: 'System' },
+    role: { type: String, default: 'system' },
+    timestamp: { type: Date, default: Date.now },
+    notes: { type: String, default: '' }
+  }]
 }, {
   timestamps: true
 });

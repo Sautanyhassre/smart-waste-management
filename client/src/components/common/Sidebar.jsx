@@ -19,23 +19,45 @@ import {
 const Sidebar = ({ isOpen, onClose }) => {
   const { user } = useContext(AuthContext);
 
-  const currentRole = user?.role || 'admin';
+  const currentRole = user?.role || 'viewer';
 
-  const navItems = [
-    { label: 'Dashboard', path: '/dashboard', icon: LayoutDashboard, roles: ['admin', 'staff', 'viewer'] },
-    { label: 'Waste Bins', path: '/bins', icon: Trash2, roles: ['admin', 'viewer'] },
-    { label: 'Bin Monitoring', path: '/monitoring', icon: Activity, roles: ['admin', 'staff'] },
-    { label: 'Map View', path: '/map', icon: MapPin, roles: ['admin', 'staff', 'viewer'] },
-    { label: 'Collections', path: '/collections', icon: CalendarCheck, roles: ['admin', 'staff'] },
-    { label: 'Vehicles', path: '/vehicles', icon: Truck, roles: ['admin', 'staff'] },
-    { label: 'Complaints', path: '/complaints', icon: MessageSquare, roles: ['admin', 'staff', 'viewer'] },
-    { label: 'Waste Records', path: '/records', icon: FileText, roles: ['admin', 'viewer'] },
-    { label: 'Analytics', path: '/analytics', icon: BarChart3, roles: ['admin', 'viewer'] },
-    { label: 'Reports', path: '/reports', icon: FileText, roles: ['admin', 'viewer'] },
-    { label: 'Alerts', path: '/alerts', icon: Bell, roles: ['admin', 'staff', 'viewer'] },
-  ];
+  // Role-specific tailored navigation
+  let navItems = [];
 
-  const visibleNavItems = navItems.filter(item => item.roles.includes(currentRole));
+  if (currentRole === 'admin') {
+    navItems = [
+      { label: 'Executive Command', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Complaint Control', path: '/complaints', icon: MessageSquare },
+      { label: 'Collections Dispatch', path: '/collections', icon: CalendarCheck },
+      { label: 'Bin Infrastructure', path: '/bins', icon: Trash2 },
+      { label: 'Fleet Telemetry', path: '/vehicles', icon: Truck },
+      { label: 'Live GIS Map', path: '/map', icon: MapPin },
+      { label: 'Municipal Analytics', path: '/analytics', icon: BarChart3 },
+      { label: 'Audit Reports', path: '/reports', icon: FileText },
+      { label: 'Suggestions Inbox', path: '/suggestions', icon: FileText },
+      { label: 'System Alerts', path: '/alerts', icon: Bell }
+    ];
+  } else if (currentRole === 'staff') {
+    navItems = [
+      { label: 'Field Operations', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'My Assigned Tasks', path: '/collections', icon: CalendarCheck },
+      { label: 'Assigned Complaints', path: '/complaints', icon: MessageSquare },
+      { label: 'Bin Telemetry (IoT)', path: '/monitoring', icon: Activity },
+      { label: 'Collection Vehicles', path: '/vehicles', icon: Truck },
+      { label: 'Route Map', path: '/map', icon: MapPin },
+      { label: 'Field Alerts', path: '/alerts', icon: Bell }
+    ];
+  } else {
+    // Viewer / Citizen Navigation
+    navItems = [
+      { label: 'Citizen Dashboard', path: '/dashboard', icon: LayoutDashboard },
+      { label: 'Report Waste Issue', path: '/complaints', icon: MessageSquare },
+      { label: 'My Complaints', path: '/my-complaints', icon: FileText },
+      { label: 'Find Bins on Map', path: '/map', icon: MapPin },
+      { label: 'Suggestions & Ideas', path: '/suggestions', icon: MessageSquare },
+      { label: 'City Notifications', path: '/alerts', icon: Bell }
+    ];
+  }
 
   return (
     <>
@@ -74,9 +96,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* Navigation Items */}
         <div className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
           <div className="px-3 pb-2 text-[10px] font-bold text-slate-500 uppercase tracking-widest">
-            Core Modules
+            {currentRole === 'admin' ? 'Admin Command' : currentRole === 'staff' ? 'Field Workspace' : 'Citizen Portal'}
           </div>
-          {visibleNavItems.map((item) => {
+          {navItems.map((item) => {
             const Icon = item.icon;
             return (
               <NavLink
