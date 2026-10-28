@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Waste Management — Video Presentation & Exporter</title>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #030712;
+      color: #f3f4f6;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 60px;
+      overflow-x: hidden;
+    }
+
+    /* Ambient Background Orbs */
+    .ambient-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 0;
+      overflow: hidden;
+    }
+    .orb-1 {
+      position: absolute;
+      top: -150px;
+      left: -150px;
+      width: 500px;
+      height: 500px;
+      background: radial-gradient(circle, rgba(16, 185, 129, 0.22) 0%, transparent 70%);
+      filter: blur(80px);
+    }
+    .orb-2 {
+      position: absolute;
+      bottom: -150px;
+      right: -150px;
+      width: 550px;
+      height: 550px;
+      background: radial-gradient(circle, rgba(6, 182, 212, 0.18) 0%, transparent 70%);
+      filter: blur(90px);
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      max-width: 1040px;
+      width: 100%;
+    }
+
+    /* Header */
+    header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 6px 14px;
+      background: rgba(16, 185, 129, 0.12);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      border-radius: 999px;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      color: #34d399;
+      margin-bottom: 12px;
+    }
+    h1 {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #ffffff 30%, #a7f3d0 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+    p.subtitle {
+      font-size: 13px;
+      color: #9ca3af;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Video Player Screen Card */
+    .player-card {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6), 0 0 40px rgba(16, 185, 129, 0.1);
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+
+    /* Screen Stage Area */
+    .screen-stage {
+      position: relative;
+      width: 100%;
+      height: 500px;
+      background: #020617;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    /* Hidden Canvas for Video Export Recording */
+    #renderCanvas {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: none;
+      z-index: 5;
+    }
+
+    .slide-media {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0;
+      transform: scale(1.04);
+      transition: opacity 0.8s ease-in-out, transform 8s ease-out;
+    }
+    .slide-media.active {
+      opacity: 1;
+      transform: scale(1);
+    }
+
+    .slide-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(2, 6, 23, 0.95) 0%, rgba(2, 6, 23, 0.45) 50%, rgba(2, 6, 23, 0.25) 100%);
+      pointer-events: none;
+    }
+
+    /* Live HUD Overlay Elements */
+    .hud-tag {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(16, 185, 129, 0.4);
+      padding: 6px 14px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #34d399;
+      font-family: 'JetBrains Mono', monospace;
+      backdrop-filter: blur(8px);
+      z-index: 20;
+    }
+    .hud-tag .live-dot {
+      width: 8px;
+      height: 8px;
+      background: #10b981;
+      border-radius: 50%;
+      box-shadow: 0 0 10px #10b981;
+      animation: pulseDot 1.5s infinite;
+    }
+    @keyframes pulseDot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
+    }
+
+    .timer-badge {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      background: rgba(15, 23, 42, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      padding: 6px 14px;
+      border-radius: 10px;
+      font-size: 12px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #e5e7eb;
+      z-index: 20;
+    }
+
+    /* Storyboard Captions Box */
+    .caption-box {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      right: 24px;
+      background: rgba(15, 23, 42, 0.94);
+      border: 1px solid rgba(255, 255, 255, 0.14);
+      border-left: 4px solid #10b981;
+      border-radius: 16px;
+      padding: 16px 20px;
+      backdrop-filter: blur(14px);
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: all 0.4s ease;
+      z-index: 20;
+    }
+    .caption-step {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: #34d399;
+      margin-bottom: 4px;
+    }
+    .caption-title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 6px;
+    }
+    .caption-desc {
+      font-size: 12px;
+      color: #cbd5e1;
+      line-height: 1.5;
+    }
+
+    /* Player Controls Bar */
+    .controls-bar {
+      padding: 16px 24px;
+      background: #0b1120;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .play-btn {
+      width: 44px;
+      height: 44px;
+      border-radius: 14px;
+      background: linear-gradient(135deg, #10b981, #059669);
+      border: none;
+      color: #022c22;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+      flex-shrink: 0;
+    }
+    .play-btn:hover {
+      transform: scale(1.05);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6);
+    }
+    .play-btn svg {
+      width: 20px;
+      height: 20px;
+      fill: currentColor;
+    }
+
+    /* Direct Video Download Button */
+    .download-video-btn {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+      transition: all 0.2s ease;
+      flex-shrink: 0;
+    }
+    .download-video-btn:hover {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 18px rgba(37, 99, 235, 0.6);
+    }
+    .download-video-btn svg {
+      width: 16px;
+      height: 16px;
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.5;
+    }
+
+    /* Progress Track */
+    .timeline {
+      flex: 1;
+      min-width: 200px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .progress-bar-wrap {
+      width: 100%;
+      height: 6px;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 999px;
+      overflow: hidden;
+      cursor: pointer;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #10b981, #06b6d4);
+      border-radius: 999px;
+      transition: width 0.15s linear;
+    }
+
+    .timeline-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #64748b;
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* Step Thumbnails Grid */
+    .steps-nav {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 10px;
+    }
+    .step-thumb-btn {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      padding: 10px 8px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      color: #94a3b8;
+    }
+    .step-thumb-btn:hover {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(16, 185, 129, 0.4);
+      color: #f1f5f9;
+    }
+    .step-thumb-btn.active {
+      background: rgba(16, 185, 129, 0.12);
+      border-color: #10b981;
+      color: #34d399;
+      font-weight: 700;
+    }
+    .step-num {
+      font-size: 10px;
+      font-family: 'JetBrains Mono', monospace;
+      margin-bottom: 2px;
+      display: block;
+    }
+    .step-name {
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      display: block;
+    }
+
+    /* Recording Modal Toast */
+    .recording-banner {
+      display: none;
+      margin-top: 16px;
+      background: rgba(30, 58, 138, 0.5);
+      border: 1px solid rgba(96, 165, 250, 0.4);
+      border-radius: 14px;
+      padding: 12px 18px;
+      font-size: 12px;
+      color: #93c5fd;
+      align-items: center;
+      justify-content: space-between;
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .steps-nav {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .screen-stage {
+        height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="ambient-bg">
+    <div class="orb-1"></div>
+    <div class="orb-2"></div>
+  </div>
+
+  <div class="container">
+    <header>
+      <div class="badge">🎬 Smart Waste Management Video</div>
+      <h1>Citizen-to-Resolution Video Presentation</h1>
+      <p class="subtitle">Experience how a citizen spots waste, sorts it using the app, and gets it cleared by municipal staff.</p>
+    </header>
+
+    <!-- Main Video Screen Card -->
+    <div class="player-card">
+      <div class="screen-stage" id="screenStage">
+        <!-- Hidden Canvas Used for Video Rendering & WebM Export -->
+        <canvas id="renderCanvas" width="1280" height="720"></canvas>
+
+        <!-- Slide Visuals -->
+        <!-- Scene 1: Citizen spots waste -->
+        <img class="slide-media active" id="media-0" crossorigin="anonymous" src="file:///C:/Users/Balaji.g/.gemini/antigravity/brain/09fe82e8-9dd6-4e97-954d-42f66658d757/citizen_reporting_garbage_1793124433737.jpg" alt="Citizen spots garbage pile">
+        
+        <!-- Scene 2: Complaint Form -->
+        <img class="slide-media" id="media-1" crossorigin="anonymous" src="file:///C:/Users/Balaji.g/.gemini/antigravity/brain/09fe82e8-9dd6-4e97-954d-42f66658d757/app_03_complaint_form.png" alt="Citizen Complaint Form">
+        
+        <!-- Scene 3: Waste Segregation Guide -->
+        <img class="slide-media" id="media-2" crossorigin="anonymous" src="file:///C:/Users/Balaji.g/.gemini/antigravity/brain/09fe82e8-9dd6-4e97-954d-42f66658d757/waste_segregation_infographic_1793124438438.jpg" alt="Waste Segregation">
+        
+        <!-- Scene 4: Supervisor Admin Dashboard -->
+        <img class="slide-media" id="media-3" crossorigin="anonymous" src="file:///C:/Users/Balaji.g/.gemini/antigravity/brain/09fe82e8-9dd6-4e97-954d-42f66658d757/app_02_admin_dashboard.png" alt="Admin Dashboard">
+        
+        <!-- Scene 5: Staff Member Sees Work in My Tasks -->
+        <img class="slide-media" id="media-4" crossorigin="anonymous" src="file:///C:/Users/Balaji.g/.gemini/antigravity/brain/09fe82e8-9dd6-4e97-954d-42f66658d757/app_05_collections_management.png" alt="Staff Portal">
+
+        <!-- Scene 6: Electric Truck Clean Up -->
+        <img class="slide-media" id="media-5" crossorigin="anonymous" src="file:///C:/Users/Balaji.g/.gemini/antigravity/brain/09fe82e8-9dd6-4e97-954d-42f66658d757/smart_electric_waste_truck_1792650039486.jpg" alt="Collection Truck">
+
+        <div class="slide-overlay"></div>
+
+        <!-- HUD Tag -->
+        <div class="hud-tag">
+          <div class="live-dot"></div>
+          <span id="hudSceneLabel">SCENE 1: CITIZEN SPOTS STREET GARBAGE</span>
+        </div>
+
+        <div class="timer-badge" id="hudTimer">00:00 / 00:30</div>
+
+        <!-- Dynamic Caption Box -->
+        <div class="caption-box" id="captionBox">
+          <div class="caption-step" id="capStep">SCENE 1 OF 6</div>
+          <div class="caption-title" id="capTitle">The Problem: Street Waste Accumulation</div>
+          <div class="caption-desc" id="capDesc">A citizen steps out into their neighborhood and notices an overflowing pile of mixed waste blocking the footpath, emitting foul odors and attracting stray animals.</div>
+        </div>
+      </div>
+
+      <!-- Controls & Scrub Bar -->
+      <div class="controls-bar">
+        <button class="play-btn" id="playBtn" onclick="togglePlay()" title="Play / Pause Presentation">
+          <svg id="playIcon" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+
+        <div class="timeline">
+          <div class="progress-bar-wrap" onclick="seekProgress(event)">
+            <div class="progress-bar-fill" id="progressFill"></div>
+          </div>
+          <div class="timeline-labels">
+            <span id="timeCurrent">00:00</span>
+            <span>Presentation Duration (5s per scene)</span>
+            <span id="timeTotal">00:30</span>
+          </div>
+        </div>
+
+        <!-- Download Video File Option -->
+        <button class="download-video-btn" id="downloadBtn" onclick="recordAndExportVideo()" title="Export high-resolution video file directly">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <span id="downloadBtnText">Download Video (.webm)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Live Recording Status Banner -->
+    <div class="recording-banner" id="recordingBanner">
+      <span id="recordingStatusText">🎬 Rendering and encoding presentation video file (1080p)... Please wait a few seconds.</span>
+      <span id="recordingPercent" style="font-family:'JetBrains Mono', monospace; font-weight:700;">0%</span>
+    </div>
+
+    <!-- Step Thumbnails Navigator -->
+    <div class="steps-nav">
+      <button class="step-thumb-btn active" onclick="goToSlide(0)">
+        <span class="step-num">01</span>
+        <span class="step-name">1. Street Problem</span>
+      </button>
+      <button class="step-thumb-btn" onclick="goToSlide(1)">
+        <span class="step-num">02</span>
+        <span class="step-name">2. Report in App</span>
+      </button>
+      <button class="step-thumb-btn" onclick="goToSlide(2)">
+        <span class="step-num">03</span>
+        <span class="step-name">3. How to Sort</span>
+      </button>
+      <button class="step-thumb-btn" onclick="goToSlide(3)">
+        <span class="step-num">04</span>
+        <span class="step-name">4. Admin Dispatch</span>
+      </button>
+      <button class="step-thumb-btn" onclick="goToSlide(4)">
+        <span class="step-num">05</span>
+        <span class="step-name">5. Staff Work Visible</span>
+      </button>
+      <button class="step-thumb-btn" onclick="goToSlide(5)">
+        <span class="step-num">06</span>
+        <span class="step-name">6. Cleaned &amp; Logged</span>
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const scenes = [
+      {
+        step: "SCENE 1 OF 6",
+        title: "The Problem: Street Waste Accumulation",
+        desc: "A citizen steps out and discovers an overflowing garbage pile blocking the pedestrian walkway, causing hygiene concerns.",
+        label: "SCENE 1: CITIZEN SPOTS STREET GARBAGE",
+        duration: 5,
+        imgId: 'media-0'
+      },
+      {
+        step: "SCENE 2 OF 6",
+        title: "Instant Digital Grievance: Complaint Reporting Form",
+        desc: "The citizen pulls out their phone, opens the Smart Waste Management Portal, fills in the landmark, chooses the issue 'Overflowing Bin', and submits it in under 30 seconds.",
+        label: "SCENE 2: CITIZEN REPORTS VIA COMPLAINT FORM",
+        duration: 5,
+        imgId: 'media-1'
+      },
+      {
+        step: "SCENE 3 OF 6",
+        title: "Educational Waste Sorting at the Source",
+        desc: "The app educates the citizen on 3-way segregation: Green for Wet/Organic, Blue for Dry/Plastic Recyclables, and Red for Domestic Hazardous waste before collection.",
+        label: "SCENE 3: WASTE CATEGORIZATION & SORTING",
+        duration: 5,
+        imgId: 'media-2'
+      },
+      {
+        step: "SCENE 4 OF 6",
+        title: "Supervisor Command Center: Priority Dispatch",
+        desc: "The municipal supervisor receives the alert in real time on the GIS Map. The bin is flagged at 94% Critical priority, and a collection vehicle is assigned.",
+        label: "SCENE 4: ADMIN RECEIVES & DISPATCHES TASK",
+        duration: 5,
+        imgId: 'media-3'
+      },
+      {
+        step: "SCENE 5 OF 6",
+        title: "Staff Transparency: Visible 'My Tasks' View",
+        desc: "The assigned sanitation worker logs into the Staff Portal. They instantly see their designated route, assigned vehicle, and target bin location with one-click status updates.",
+        label: "SCENE 5: FIELD OFFICER RECEIVES ASSIGNED WORK",
+        duration: 5,
+        imgId: 'media-4'
+      },
+      {
+        step: "SCENE 6 OF 6",
+        title: "Resolution & Zero-Waste Verification",
+        desc: "The electric compactor clears the waste. The worker marks the task 'Completed' with the collected weight, resetting the bin fill level to 0% and closing the citizen's complaint.",
+        label: "SCENE 6: COMPLETED & BIN RESET TO 0%",
+        duration: 5,
+        imgId: 'media-5'
+      }
+    ];
+
+    let currentSlide = 0;
+    let isPlaying = false;
+    let timer = null;
+    let elapsedSeconds = 0;
+    const totalDuration = scenes.reduce((a, b) => a + b.duration, 0); // 30s
+
+    function updateUI() {
+      // Update Images
+      document.querySelectorAll('.slide-media').forEach((img, idx) => {
+        img.classList.toggle('active', idx === currentSlide);
+      });
+
+      // Update Nav Buttons
+      document.querySelectorAll('.step-thumb-btn').forEach((btn, idx) => {
+        btn.classList.toggle('active', idx === currentSlide);
+      });
+
+      // Update Captions
+      const sc = scenes[currentSlide];
+      document.getElementById('capStep').textContent = sc.step;
+      document.getElementById('capTitle').textContent = sc.title;
+      document.getElementById('capDesc').textContent = sc.desc;
+      document.getElementById('hudSceneLabel').textContent = sc.label;
+
+      // Update Progress
+      const pct = (elapsedSeconds / totalDuration) * 100;
+      document.getElementById('progressFill').style.width = pct + '%';
+
+      // Timers format
+      const curM = String(Math.floor(elapsedSeconds / 60)).padStart(2, '0');
+      const curS = String(elapsedSeconds % 60).padStart(2, '0');
+      const totM = String(Math.floor(totalDuration / 60)).padStart(2, '0');
+      const totS = String(totalDuration % 60).padStart(2, '0');
+
+      document.getElementById('timeCurrent').textContent = `${curM}:${curS}`;
+      document.getElementById('timeTotal').textContent = `${totM}:${totS}`;
+      document.getElementById('hudTimer').textContent = `${curM}:${curS} / ${totM}:${totS}`;
+    }
+
+    function togglePlay() {
+      isPlaying = !isPlaying;
+      const playIcon = document.getElementById('playIcon');
+      if (isPlaying) {
+        playIcon.innerHTML = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
+        startTimer();
+      } else {
+        playIcon.innerHTML = '<path d="M8 5v14l11-7z"/>';
+        clearInterval(timer);
+      }
+    }
+
+    function startTimer() {
+      clearInterval(timer);
+      timer = setInterval(() => {
+        elapsedSeconds++;
+        if (elapsedSeconds >= totalDuration) {
+          elapsedSeconds = 0;
+          currentSlide = 0;
+        } else {
+          currentSlide = Math.floor(elapsedSeconds / 5);
+        }
+        updateUI();
+      }, 1000);
+    }
+
+    function goToSlide(idx) {
+      currentSlide = idx;
+      elapsedSeconds = idx * 5;
+      updateUI();
+    }
+
+    function seekProgress(e) {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const clickX = e.clientX - rect.left;
+      const pct = clickX / rect.width;
+      elapsedSeconds = Math.floor(pct * totalDuration);
+      currentSlide = Math.min(Math.floor(elapsedSeconds / 5), scenes.length - 1);
+      updateUI();
+    }
+
+    /* ─── Direct Video Export & Download Engine ─── */
+    async function recordAndExportVideo() {
+      const banner = document.getElementById('recordingBanner');
+      const statusText = document.getElementById('recordingStatusText');
+      const percentText = document.getElementById('recordingPercent');
+      const btnText = document.getElementById('downloadBtnText');
+      
+      banner.style.display = 'flex';
+      btnText.textContent = 'Rendering...';
+
+      const canvas = document.getElementById('renderCanvas');
+      const ctx = canvas.getContext('2d');
+      canvas.width = 1280;
+      canvas.height = 720;
+
+      // Pre-load images onto canvas
+      const imgElements = scenes.map(s => document.getElementById(s.imgId));
+
+      const stream = canvas.captureStream(30);
+      let mediaRecorder;
+      try {
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+      } catch (e) {
+        mediaRecorder = new MediaRecorder(stream);
+      }
+
+      const chunks = [];
+      mediaRecorder.ondataavailable = e => {
+        if (e.data.size > 0) chunks.push(e.data);
+      };
+
+      mediaRecorder.onstop = () => {
+        const blob = new Blob(chunks, { type: 'video/webm' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'smart_waste_management_presentation.webm';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+
+        statusText.textContent = '✅ Video file downloaded successfully!';
+        percentText.textContent = '100%';
+        btnText.textContent = 'Download Again';
+        setTimeout(() => { banner.style.display = 'none'; }, 5000);
+      };
+
+      mediaRecorder.start();
+
+      const totalFrames = 30 * 18; // 18 seconds fast video render
+      let frame = 0;
+
+      function renderFrame() {
+        const sceneIndex = Math.min(Math.floor((frame / totalFrames) * scenes.length), scenes.length - 1);
+        const sc = scenes[sceneIndex];
+        const img = imgElements[sceneIndex];
+
+        // Draw image background
+        ctx.fillStyle = '#020617';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        if (img && img.naturalWidth) {
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        }
+
+        // Dark gradient overlay
+        const grad = ctx.createLinearGradient(0, canvas.height * 0.4, 0, canvas.height);
+        grad.addColorStop(0, 'rgba(2, 6, 23, 0.2)');
+        grad.addColorStop(1, 'rgba(2, 6, 23, 0.95)');
+        ctx.fillStyle = grad;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Top HUD
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.85)';
+        ctx.fillRect(30, 30, 480, 40);
+        ctx.strokeStyle = '#10b981';
+        ctx.lineWidth = 1.5;
+        ctx.strokeRect(30, 30, 480, 40);
+
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 15px JetBrains Mono, monospace';
+        ctx.fillText(sc.label, 48, 56);
+
+        // Draw Caption Box
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.92)';
+        ctx.fillRect(40, canvas.height - 180, canvas.width - 80, 140);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(40, canvas.height - 180, canvas.width - 80, 140);
+
+        // Left accent bar
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(40, canvas.height - 180, 6, 140);
+
+        // Caption text
+        ctx.fillStyle = '#34d399';
+        ctx.font = 'bold 13px Plus Jakarta Sans, sans-serif';
+        ctx.fillText(sc.step, 65, canvas.height - 148);
+
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 22px Plus Jakarta Sans, sans-serif';
+        ctx.fillText(sc.title, 65, canvas.height - 118);
+
+        ctx.fillStyle = '#cbd5e1';
+        ctx.font = '15px Plus Jakarta Sans, sans-serif';
+        ctx.fillText(sc.desc.length > 95 ? sc.desc.substring(0, 95) + '...' : sc.desc, 65, canvas.height - 80);
+
+        // Bottom Progress Line
+        const progressWidth = ((frame + 1) / totalFrames) * canvas.width;
+        ctx.fillStyle = '#10b981';
+        ctx.fillRect(0, canvas.height - 6, progressWidth, 6);
+
+        frame++;
+        percentText.textContent = Math.round((frame / totalFrames) * 100) + '%';
+
+        if (frame < totalFrames) {
+          requestAnimationFrame(renderFrame);
+        } else {
+          mediaRecorder.stop();
+        }
+      }
+
+      renderFrame();
+    }
+
+    // Initialize on load
+    updateUI();
+  </script>
+</body>
+</html>
